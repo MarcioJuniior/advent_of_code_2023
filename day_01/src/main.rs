@@ -2,6 +2,10 @@ use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 
+pub mod iterator;
+
+use crate::iterator::StringNumbers;
+
 #[test]
 fn numbers_are_extracted_from_string_digits() {
     assert_eq!(extract_number_from_string_digits("1abc2"), 12);
@@ -19,9 +23,36 @@ fn extract_number_from_string_digits(text: &str) -> u32 {
     first * 10 + last
 }
 
+#[test]
+fn numbers_are_extracted_from_string_digits_or_text() {
+    assert_eq!(extract_number_from_string_digits_or_text("two1nine"), 29);
+    assert_eq!(extract_number_from_string_digits_or_text("eightwothree"), 83);
+    assert_eq!(extract_number_from_string_digits_or_text("abcone2threexyz"), 13);
+    assert_eq!(extract_number_from_string_digits_or_text("xtwone3four"), 24);
+    assert_eq!(extract_number_from_string_digits_or_text("4nineeightseven2"), 42);
+    assert_eq!(extract_number_from_string_digits_or_text("zoneight234"), 14);
+    assert_eq!(extract_number_from_string_digits_or_text("7pqrstsixteen"), 76);
+    assert_eq!(extract_number_from_string_digits_or_text("twone"), 21);
+}
+
+fn extract_number_from_string_digits_or_text(text: &str) -> u32 {
+    let numbers = StringNumbers::new(text.to_string()).collect::<Vec<u32>>();
+
+    let first = numbers.first().unwrap();
+    let last = numbers.last().unwrap();
+
+    first * 10 + last
+}
+
 fn part1(reader: BufReader<File>) -> u32 {
     reader.lines()
         .map(|line| extract_number_from_string_digits(&line.unwrap()))
+        .sum()
+}
+
+fn part2(reader: BufReader<File>) -> u32 {
+    reader.lines()
+        .map(|line| extract_number_from_string_digits_or_text(&line.unwrap()))
         .sum()
 }
 
@@ -36,6 +67,7 @@ fn main() -> io::Result<()> {
 
     let result = match part.as_str() {
         "1" => Ok(part1(reader)),
+        "2" => Ok(part2(reader)),
         &_ => Err("Unsupported Operation"),
     };
 
